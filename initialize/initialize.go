@@ -150,7 +150,7 @@ func githubSearch(p *lib.Provider, query string) ([]lib.Repo, error) {
 			time.Sleep(waitTime)
 			continue
 		} else if ghErr, ok := err.(*github.ErrorResponse); ok {
-			if ghErr.Response.StatusCode == http.StatusUnauthorized && strings.HasSuffix(ghErr.DocumentationURL, "#secondary-rate-limits"){
+			if ghErr.Response.StatusCode == http.StatusForbidden && strings.HasSuffix(ghErr.DocumentationURL, "#secondary-rate-limits"){
 				var waitTime time.Duration
 				waitTime = 60 * time.Second
 				log.Printf("Triggered Github secondary rate limits - waiting %v then trying again.\n", waitTime)
