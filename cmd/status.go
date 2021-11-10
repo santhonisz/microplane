@@ -7,6 +7,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/acarl005/stripansi"
 	"github.com/Clever/microplane/clone"
 	"github.com/Clever/microplane/initialize"
 	"github.com/Clever/microplane/lib"
@@ -111,7 +112,7 @@ func getRepoStatus(repo lib.Repo) (status, details string) {
 		return
 	}
 	status = "planned"
-	diff, err := diffparser.Parse(planOutput.GitDiff)
+	diff, err := diffparser.Parse(stripansi.Strip(planOutput.GitDiff))
 	if err == nil {
 		details = fmt.Sprintf("%d file(s) modified", len(diff.Files))
 	}
