@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -152,7 +153,15 @@ func githubSearch(p *lib.Provider, query string) ([]lib.Repo, error) {
 		} else if ghErr, ok := err.(*github.ErrorResponse); ok {
 			if ghErr.Response.StatusCode == http.StatusForbidden && strings.HasSuffix(ghErr.DocumentationURL, "#secondary-rate-limits"){
 				var waitTime time.Duration
-				waitTime = 60 * time.Second
+				if v := ghErr.Response.Header["Retry-After"]; len(v) > 0 {
+					// According to GitHub support, the "Retry-After" header value will be
+					// an integer which represents the number of seconds that one should
+					// wait before resuming making requests.
+					retryAfterSeconds, _ := strconv.ParseInt(v[0], 10, 64) // Error handling is noop.
+					waitTime = time.Duration(retryAfterSeconds) * time.Second
+				} else {
+					waitTime = 60 * time.Second
+				}
 				log.Printf("Triggered Github secondary rate limits - waiting %v then trying again.\n", waitTime)
 				time.Sleep(waitTime)
 				continue
